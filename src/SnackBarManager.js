@@ -1,97 +1,88 @@
-import React from 'react'
-import RootSiblings from 'react-native-root-siblings'
+import React from 'react';
+import RootSiblings from 'react-native-root-siblings';
+import SnackBar from './SnackBar';
 
-import type { SnackItemType } from './type'
-import SnackBar from './SnackBar'
+// tslint:disable:no-empty
 
 export default class SnackBarManager {
-  current: SnackItemType
-  queue: Array<SnackItemType>
-
   constructor () {
-    this.current = null
-    this.queue = []
+    this.current = null;
+    this.currentProps = null;
+    this.queue = [];
   }
 
-  _setCurrent = (props: SnackItemType, callback?: Function = () => {}): void => {
+  _setCurrent = (props, callback = () => {}) => {
     if (!('onAutoDismiss' in props)) {
-      props.onAutoDismiss = this.dismiss
+      props.onAutoDismiss = this.dismiss;
     }
 
-    const current = new RootSiblings(<SnackBar {...props} />)
-	this.current = current
-	callback()
+    const current = new RootSiblings(<SnackBar {...props} />);
+    this.current = current;
+    this.currentProps = props;
+    callback();
   }
 
-  _removeCurrent = (callback?: Function = () => {}): void => {
+  _removeCurrent = (callback = () => {}) => {
     if (!this.current) {
-      callback()
-      return
+      callback();
+      return;
     }
 
     this.current.destroy(() => {
-      this.current = null
-      callback()
-    })
+      this.current = null;
+      this.currentProps = null;
+      callback();
+    });
   }
 
   get = () => {
     return {
       current: this.current,
+      currentProps: this.currentProps,
       queue: this.queue
-    }
+    };
   }
 
-  add = (
-    title: string,
-    options?: SnackItemType,
-    callback?: Function = () => {}
-  ): void => {
-    const props = { title, ...options }
+  add = (title, options = {}, callback = () => {}) => {
+    const props = { title, ...options };
 
     if (this.current) {
-      this.queue.push(props)
-      callback()
-      return
+      this.queue.push(props);
+      callback();
+      return;
     }
 
-    this._setCurrent(props, callback)
+    this._setCurrent(props, callback);
   }
 
-  show = (
-    title: string,
-    options?: SnackItemType,
-    callback?: Function = () => {}
-  ): void => {
-    const props = { title, ...options }
+  show = (title, options = {}, callback = () => {}) => {
+    const props = { title, ...options };
 
     if (this.current) {
       if (this._isItemAlreadyExistById(props)) {
-        return
+        return;
       }
-      this.queue.unshift(props)
-      callback()
-      return
+      this.queue.unshift(props);
+      callback();
+      return;
     }
 
-    this._setCurrent(props, callback)
+    this._setCurrent(props, callback);
   }
 
-  dismiss = (callback?: Function = () => {}): void => {
+  dismiss = (callback = () => {}) => {
     this._removeCurrent(() => {
       if (!this.queue.length) {
-        callback()
-        return
+        callback();
+        return;
       }
 
-      const current = this.queue.shift()
-      this._setCurrent(current, callback)
-    })
+      const current = this.queue.shift();
+      this._setCurrent(current, callback);
+    });
   }
 
-  _isItemAlreadyExistById = (
-    props
-  ): boolean => {
-    return props.id && this.queue.find(item => item.id === props.id)
+  _isItemAlreadyExistById = (props) => {
+    return props.id && (this.queue.find(item => item.id === props.id) || this.currentProps.id === props.id);
   }
 }

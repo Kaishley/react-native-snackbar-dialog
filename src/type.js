@@ -1,8 +1,6 @@
-// @flow
+const SnackPosition = 'bottom' | 'top';
 
-type SnackPosition = 'bottom' | 'top';
-
-export type SnackItemType = {
+export const SnackItemType = {
   title: string,
   id?: string, // Once ID is specified, duplicated item won't be added to the queue
 
@@ -25,4 +23,4 @@ export type SnackItemType = {
   duration?: number,
   isStatic?: boolean,
   tapToClose?: boolean
-}
+};
